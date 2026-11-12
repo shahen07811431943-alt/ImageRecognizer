@@ -1,33 +1,12 @@
-# ImageRecognizer — تطبيق التعرف على الصور
+# ImageRecognizer — الكاميرا الذكية للتعرف على الحيوانات (قطيعي)
 
-تطبيق أندرويد (Kotlin + Jetpack Compose) يتعرف على محتوى الصورة **على الجهاز وبدون إنترنت** باستخدام Google ML Kit.
+تطبيق أندرويد (Kotlin + Jetpack Compose) للتعرف على الأغنام والمعز وجرد القطيع، يعمل بدون إنترنت.
 
-## المزايا
-- اختيار صورة من المعرض أو التقاطها بالكاميرا
-- عرض أفضل التصنيفات مع نسبة الثقة
-- بنية نظيفة: `data` (النموذج) / `ui` (الواجهة + ViewModel)
+## كيف يعمل
+- **القطيع:** تسجّل كل حيوان برقمه/علامته، وتضيف 3 إلى 5 صور له، والاسم اختياري ويمكن إضافته لاحقاً.
+- **تعرّف:** تصوّر حيواناً فيقرأ الرقم أو العلامة (دقيق)، وإلا يرتّب أقرب الحيوانات بالشكل (تقريبي). بالضغط على "هذا هو" تُضاف الصورة لصوره فيتحسن التعرف.
+- **الجرد:** تصوّر القطيع فتُقرأ الأرقام الظاهرة، ويعرض التطبيق **من لم يُرصد بعد**. ويمكن تحديد الحيوان يدوياً بالضغط عليه.
 
-## الهيكل
-```
-app/src/main/kotlin/com/example/mycompose/imagerecognizer/
-├── MainActivity.kt
-├── data/
-│   ├── ImageClassifier.kt      ← غلاف ML Kit (غيّره لاستخدام نموذج TFLite مخصص)
-│   └── Prediction.kt
-└── ui/
-    ├── HomeScreen.kt
-    ├── RecognitionViewModel.kt
-    └── theme/ (Color, Theme, Type)
-```
-
-## البناء
-- محلياً: `./gradlew assembleDebug` (أضف gradle wrapper أو ولّده من IDE)
-- على GitHub: كل `push` يشغّل Actions ويرفع ملف `app-debug.apk` ضمن Artifacts.
-
-## الرفع إلى GitHub
-```
-git init && git add . && git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/<USER>/ImageRecognizer.git
-git push -u origin main
-```
+## ملاحظات
+- أدق طريقة: رقم كبير واضح على الحلقة أو مرشوش على الجسم.
+- التعرف بالشكل فقط تقريبي، لأن النموذج المستخدم عام وليس مدرّباً على أغنامكم.
