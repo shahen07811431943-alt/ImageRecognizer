@@ -1,0 +1,47 @@
+name: Unzip project
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '*.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unzip and move to repo root
+        run: |
+          set -e
+          ZIP=$(ls *.zip | head -n 1)
+          mkdir /tmp/x
+          unzip -q "$ZIP" -d /tmp/x
+
+          # لو كان داخل الـ zip مجلد واحد، ندخل إليه
+          SRC=/tmp/x
+          if [ "$(ls -A /tmp/x | wc -l)" = "1" ] && [ -d "/tmp/x/$(ls /tmp/x)" ]; then
+            SRC="/tmp/x/$(ls /tmp/x)"
+          fi
+
+          # GitHub لا يسمح للـ Actions بإنشاء ملفات workflows،
+          # فنحفظ build.yml في الجذر لتنقله أنت يدوياً
+          if [ -f "$SRC/.github/workflows/build.yml" ]; then
+            cp "$SRC/.github/workflows/build.yml" build-workflow.yml
+          fi
+          rm -rf "$SRC/.github"
+
+          cp -a "$SRC"/. .
+          rm -f "$ZIP"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Unzip project" || echo "nothing to commit"
+          git push
