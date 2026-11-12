@@ -1,29 +1,46 @@
-name: Build APK
+name: Unzip project
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
+  push:
+    paths:
+      - '*.zip'
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  unzip:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.13
-      - name: Build debug APK
-        run: gradle assembleDebug
-      - name: Lint
-        if: always()
-        continue-on-error: true
-        run: gradle lintDebug
-      - uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Wipe repo and replace with zip content
+        run: |
+          set -e
+          ZIP=$(ls *.zip | head -n 1)
+          rm -rf /tmp/x && mkdir /tmp/x
+          unzip -q "$ZIP" -d /tmp/x
+
+          # لو كان داخل الـ zip مجلد واحد ندخل إليه
+          SRC=/tmp/x
+          if [ "$(ls -A /tmp/x | wc -l)" = "1" ] && [ -d "/tmp/x/$(ls /tmp/x)" ]; then
+            SRC="/tmp/x/$(ls /tmp/x)"
+          fi
+
+          # GitHub يمنع الـ Actions من تعديل ملفات workflows، فنتركها كما هي
+          rm -rf "$SRC/.github"
+
+          # مسح كل القديم (عدا .git و .github)
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .github -exec rm -rf {} +
+
+          # وضع الجديد مكانه
+          cp -a "$SRC"/. .
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Replace project with new version" || echo "nothing to commit"
+          git push
